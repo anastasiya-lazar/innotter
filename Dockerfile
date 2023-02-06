@@ -5,10 +5,12 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-#RUN pip install --upgrade pip
 COPY Pipfile Pipfile.lock /app/
 
 RUN pip install pipenv --upgrade
 RUN pipenv lock && pipenv install --deploy --system --ignore-pipfile
 
 COPY . .
+
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
