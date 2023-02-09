@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Page, Post, Tag
+from coreapp.models import User, Page, Post, Tag
 
 # Register your models here.
 
