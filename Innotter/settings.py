@@ -28,9 +28,9 @@ DEBUG = os.environ.get('DEBUG')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 INSTALLED_APPS = [
+    'drf_yasg',
     'coreapp',
     'rest_framework',
-    # 'drf_yasg',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
