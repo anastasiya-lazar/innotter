@@ -12,6 +12,3 @@ router.register (r'posts', views.PostViewSet)
 
 urlpatterns = router.urls
 
-# urlpatterns = [
-#     path('', include (router.urls)),
-# ]

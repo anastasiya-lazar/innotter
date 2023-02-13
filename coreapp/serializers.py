@@ -5,6 +5,9 @@ import django.contrib.auth.password_validation as validators
 from coreapp.models import User, Page, Post, Tag
 
 class UserModelSerializer(serializers.ModelSerializer):
+    """
+    A Serializer for User model with implementations of 'validate()' - for password validation and 'create()' methods
+    """
     class Meta:
         model = User
         fields = ["id","username", "email", "first_name", "last_name", "password"]
@@ -35,9 +38,12 @@ class UserModelSerializer(serializers.ModelSerializer):
 
 
 class PageModelSerializer(serializers.ModelSerializer):
+    """
+    A Serializer for Page model with implementation of 'create()' method
+    """
     class Meta:
         model = Page
-        exclude = ['id', 'uuid']
+        fields = ["name", "description", "image", "is_private", "owner", "tags", "unblock_date", "followers", "follow_requests"]
         read_only_fields = ['owner',  "unblock_date", "followers", "follow_requests"]
 
     def create(self, validated_data):
@@ -46,12 +52,18 @@ class PageModelSerializer(serializers.ModelSerializer):
 
 
 class TagModelSerializer(serializers.ModelSerializer):
+    """
+    A Serializer for Tag model 
+    """
     class Meta:
         model = Tag
         fields = ["name"]
 
 
 class PostModelSerializer(serializers.ModelSerializer):
+    """
+    A Serializer for Post model
+    """
     class Meta:
         model = Post
         fields = ["content", "page", 'reply_to']
