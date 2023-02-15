@@ -14,23 +14,19 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# take environment variables from .env.
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(' ')
-# Application definition
+
 DEBUG = os.environ.get('DEBUG')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 INSTALLED_APPS = [
+    'drf_yasg',
     'coreapp',
     'rest_framework',
-    # 'drf_yasg',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
