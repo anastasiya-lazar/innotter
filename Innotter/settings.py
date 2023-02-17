@@ -26,6 +26,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 INSTALLED_APPS = [
     'drf_yasg',
     'coreapp',
+    'drf_standardized_errors',
+
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,6 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
+}
+
+DRF_STANDARDIZED_ERRORS = {"ENABLE_IN_DEBUG_FOR_UNHANDLED_EXCEPTIONS": True}
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -43,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'coreapp.middleware.JWTMiddleware',
+    'coreapp.middleware.SessionAuthCSRFDisableMiddleware',
 ]
 
 ROOT_URLCONF = 'Innotter.urls'
@@ -121,5 +133,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'coreapp.User'
 
-# Redirect to home URL after login (Default redirects to /accounts/profile/)
-# LOGIN_REDIRECT_URL = '/'
