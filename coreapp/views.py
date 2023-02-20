@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, mixins
-from coreapp.models import User, Page, Tag, Post 
+from coreapp.models import User, Page, Tag, Post
 from coreapp import serializers
-from coreapp.authentication import create_refresh_token, create_access_token, validate_token
+from coreapp.authentication import create_refresh_token, create_access_token, decode_token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import APIException
@@ -9,32 +9,34 @@ from rest_framework.exceptions import APIException
 
 class LoginView(APIView):
     def post(self, request):
-        user=User.objects.get(email=request.data['email'])
+        if not request.data.get('email') or not request.data.get('password'):
+            raise APIException('Email and password can not be blank')
+        user = User.objects.get(email= request.data['email'])
         if not user:
-            raise APIException ('Invalid Credentials')
+            raise APIException('Invalid Credentials')
         if not user.check_password(request.data['password']):
-            raise APIException ('Invalid Credentials')
+            raise APIException('Invalid Credentials')
         access_token = create_access_token(user.id)
         refresh_token = create_refresh_token(user.id)
         response = Response()
-        response.set_cookie(key='refresh-token', value = refresh_token, httponly=True)
+        response.set_cookie(key='refresh-token', value=refresh_token, httponly=True)
         response.data = {
-                'access-token': access_token,
-            }
+            'access-token': access_token,
+        }
         return response
 
 
-class RefreshAPIView(APIView):   
+class RefreshAPIView(APIView):
     def post(self, request):
         refresh_token = request.COOKIES.get('refresh-token')
-        id = validate_token(refresh_token)
+        id =decode_token(refresh_token)
         access_token = create_access_token(id)
         refresh_token = create_refresh_token(id)
         response = Response()
-        response.set_cookie(key='refresh-token', value = refresh_token, httponly=True)
+        response.set_cookie(key='refresh-token', value=refresh_token, httponly=True)
         response.data = {
-                'access-token': access_token,
-            }
+            'access-token': access_token,
+        }
         return response
 
 
@@ -60,14 +62,14 @@ class UserViewSet(mixins.CreateModelMixin,
     """
     queryset = User.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
-    serializer_classes = { 
+    serializer_classes = {
         'list': serializers.UserListModelSerializer,
         'retrieve': serializers.UserRetrieveModelSerializer,
-        'default':  serializers.UserModelSerializer,
+        'default': serializers.UserModelSerializer,
     }
 
     def get_serializer_class(self):
-        return self.serializer_classes.get(self.action, self.serializer_classes ['default'])
+        return self.serializer_classes.get(self.action, self.serializer_classes['default'])
 
 
 class PageViewSet(mixins.CreateModelMixin,
@@ -86,21 +88,21 @@ class PageViewSet(mixins.CreateModelMixin,
         permissions.IsAuthenticated
     ]
     http_method_names = ('get', 'post', 'patch', 'delete')
-    serializer_classes = { 
+    serializer_classes = {
         'partial_update': serializers.PageUpdateModelSerializer,
         'list': serializers.PageListModelSerializer,
         'retrieve': serializers.PageRetrieveModelSerializer,
-        'default':  serializers.PageModelSerializer,
+        'default': serializers.PageModelSerializer,
     }
 
     def get_serializer_class(self):
-        return self.serializer_classes.get(self.action, self.serializer_classes ['default'])
+        return self.serializer_classes.get(self.action, self.serializer_classes['default'])
 
 
 class TagViewSet(mixins.CreateModelMixin,
-                mixins.DestroyModelMixin,
-                mixins.ListModelMixin,
-                viewsets.GenericViewSet):
+                 mixins.DestroyModelMixin,
+                 mixins.ListModelMixin,
+                 viewsets.GenericViewSet):
     """
     A viewset for instances of Tag model that provides `create()`, `destroy()` and `list()` actions.
     """
@@ -118,17 +120,14 @@ class PostViewSet(mixins.CreateModelMixin,
     A viewset for instances of Post model that provides `create()`, `retrieve()`, `partial_update()`, `destroy()` and `list()` actions.
     """
     queryset = Post.objects.all()
-   
+
     http_method_names = ('get', 'post', 'patch', 'delete')
 
-    serializer_classes = { 
+    serializer_classes = {
         'partial_update': serializers.PostUpdateModelSerializer,
         'retrieve': serializers.PostRetrieveModelSerializer,
-        'default':  serializers.PostModelSerializer,
+        'default': serializers.PostModelSerializer,
     }
 
     def get_serializer_class(self):
-        return self.serializer_classes.get(self.action, self.serializer_classes ['default'])
-
-
-
+        return self.serializer_classes.get(self.action, self.serializer_classes['default'])

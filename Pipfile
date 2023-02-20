@@ -10,7 +10,7 @@ python-dotenv = '0.21.1'
 djangorestframework = '3.14.0'
 drf_yasg = '1.21.4'
 pyjwt = '2.6.0'
-drf_standardized_errors = '0.12.5'
+drf-standardized-errors = '0.12.5'
 
 [dev-packages]
 
