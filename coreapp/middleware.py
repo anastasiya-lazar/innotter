@@ -2,30 +2,8 @@ import os
 from coreapp.models import User
 from django.utils.deprecation import MiddlewareMixin
 from coreapp.authentication import decode_token
-from django.http import HttpResponse
-import json
 import jwt
-from django.conf import settings
 from django.http import JsonResponse
-from django.urls import reverse
-
-
-key = os.environ.get('JWT_SECRET')
-
-
-# class JWTMiddleware(MiddlewareMixin):
-#     def process_request(self, request):
-#         if request.path.startswith(('/login/', '/refresh/', '/swagger/', '/admin/', '/redoc/')):
-#             return None
-#         jwt_token = request.headers.get('authorization', None)
-#         if jwt_token:
-#             # user_id = validate_token(jwt_token)
-#             user = User.objects.get(pk=user_id)
-#             if user:
-#                 request.user = user
-#         else:
-#             return HttpResponse(json.dumps({"message": "Authorization not found, Please send valid token in headers"}),
-#                                 status=401)
 
 
 class SessionAuthCSRFDisableMiddleware:
@@ -40,16 +18,16 @@ class SessionAuthCSRFDisableMiddleware:
 
 class JWTMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if request.path.startswith(('/login/', '/refresh/', '/swagger/', '/admin/', '/redoc/')):
+
+        if request.path.startswith(('/auth/login/', '/auth/refresh/', '/swagger/', '/admin/', '/redoc/')):
             return None
 
         access_token = None
         refresh_token = request.COOKIES.get('refresh_token', None)
         if not refresh_token:
-            authorization_header = request.META.get('HTTP_AUTHORIZATION', None)
+            authorization_header = request.META.get('HTTP_AUTHORIZATION')
             if not authorization_header:
                 return JsonResponse({'error': 'Authorization header is missing'}, status=401)
-
             try:
                 token_type, token = authorization_header.split(' ')
                 if token_type.lower() == 'bearer':

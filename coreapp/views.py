@@ -3,19 +3,23 @@ from coreapp.models import User, Page, Tag, Post
 from coreapp import serializers
 from coreapp.authentication import create_refresh_token, create_access_token, decode_token
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.http import JsonResponse
 from rest_framework.exceptions import APIException
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
-
-class LoginView(APIView):
-    def post(self, request):
+class AuthenticationViewSet(ViewSet):
+    @action(detail=False, methods=['post'])
+    def login(self, request):
         if not request.data.get('email') or not request.data.get('password'):
             raise APIException('Email and password can not be blank')
-        user = User.objects.get(email= request.data['email'])
-        if not user:
-            raise APIException('Invalid Credentials')
-        if not user.check_password(request.data['password']):
-            raise APIException('Invalid Credentials')
+        try:
+            user = User.objects.get(email=request.data['email'])
+            if not user.check_password(request.data['password']):
+                raise APIException('Invalid Credentials')
+        except User.DoesNotExist:
+            raise APIException('User does not exist. Invalid Credentials')
         access_token = create_access_token(user.id)
         refresh_token = create_refresh_token(user.id)
         response = Response()
@@ -25,10 +29,11 @@ class LoginView(APIView):
         }
         return response
 
-
-class RefreshAPIView(APIView):
-    def post(self, request):
+    @action(detail=False, methods=['post'])
+    def refresh(self, request):
         refresh_token = request.COOKIES.get('refresh-token')
+        if not refresh_token:
+            return JsonResponse({'error': 'Refresh token is missing'}, status=401)
         id =decode_token(refresh_token)
         access_token = create_access_token(id)
         refresh_token = create_refresh_token(id)
@@ -38,16 +43,15 @@ class RefreshAPIView(APIView):
             'access-token': access_token,
         }
         return response
-
-
-class LogoutAPIView(APIView):
-    def post(self, _):
-        response = Response()
-        response.delete_cookie(key="refresh-token")
-        response.data = {
-            'message': 'success'
-        }
-        return response
+       
+    @action(detail=False, methods=['post'])
+    def logout(self, _):
+            response = Response()
+            response.delete_cookie(key="refresh-token")
+            response.data = {
+                'message': 'success'
+            }
+            return response
 
 
 class UserViewSet(mixins.CreateModelMixin,
