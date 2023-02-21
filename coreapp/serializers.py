@@ -3,7 +3,37 @@ from django.contrib.auth.hashers import make_password
 from django.core import exceptions
 import django.contrib.auth.password_validation as validators
 from coreapp.models import User, Page, Post, Tag
+from rest_framework.exceptions import APIException
+from coreapp.authentication import create_refresh_token, create_access_token
 
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True)
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)
+
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        email = validated_data['email']
+        password = validated_data['password']
+        try:
+            user = User.objects.get(email=email)
+            if not user.check_password(password):
+                raise APIException('Invalid Credentials')
+            validated_data['user'] = user
+        except User.DoesNotExist:
+            raise APIException('User does not exist. Invalid Credentials')
+        return validated_data
+    
+    def create(self, validated_data):
+        access_token = create_access_token(validated_data['user'].id)
+        refresh_token = create_refresh_token(validated_data['user'].id)
+        return {
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        }
+        
 
 class UserListModelSerializer(serializers.ModelSerializer):
     """

@@ -17,7 +17,7 @@ class User(AbstractUser):
     last_name = models.CharField('last name', max_length=150, blank=False)
     email = models.EmailField(unique=True, blank=False)
     image_s3_path = models.URLField(null=True, blank=True)
-    role = models.CharField(max_length=9, choices=Roles.choices)
+    role = models.CharField(max_length=9, choices=Roles.choices, default = Roles.USER)
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
 

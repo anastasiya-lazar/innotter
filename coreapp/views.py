@@ -1,57 +1,50 @@
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.http import JsonResponse
 from coreapp.models import User, Page, Tag, Post
 from coreapp import serializers
 from coreapp.authentication import create_refresh_token, create_access_token, decode_token
-from rest_framework.response import Response
-from django.http import JsonResponse
-from rest_framework.exceptions import APIException
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
 
-class AuthenticationViewSet(ViewSet):
+
+class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def login(self, request):
-        if not request.data.get('email') or not request.data.get('password'):
-            raise APIException('Email and password can not be blank')
-        try:
-            user = User.objects.get(email=request.data['email'])
-            if not user.check_password(request.data['password']):
-                raise APIException('Invalid Credentials')
-        except User.DoesNotExist:
-            raise APIException('User does not exist. Invalid Credentials')
-        access_token = create_access_token(user.id)
-        refresh_token = create_refresh_token(user.id)
-        response = Response()
-        response.set_cookie(key='refresh-token', value=refresh_token, httponly=True)
-        response.data = {
-            'access-token': access_token,
-        }
-        return response
+        serializer = serializers.LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            response_data = serializer.save()
+            response = Response()
+            response.set_cookie(key='refresh-token', value=response_data['refresh_token'], httponly=True)
+            response.data = {
+                'access-token': response_data['access_token']
+            }
+            return response
+        return Response(data=serializer.errors)
 
     @action(detail=False, methods=['post'])
     def refresh(self, request):
         refresh_token = request.COOKIES.get('refresh-token')
         if not refresh_token:
-            return JsonResponse({'error': 'Refresh token is missing'}, status=401)
-        id =decode_token(refresh_token)
-        access_token = create_access_token(id)
-        refresh_token = create_refresh_token(id)
+            return JsonResponse({'error': 'Please log in.'}, status=401)
+        user_id =decode_token(refresh_token)
+        access_token = create_access_token(user_id)
+        refresh_token = create_refresh_token(user_id)
         response = Response()
         response.set_cookie(key='refresh-token', value=refresh_token, httponly=True)
         response.data = {
             'access-token': access_token,
         }
         return response
-       
-    @action(detail=False, methods=['post'])
+
+    
+    @action(detail=False, methods=['post'],  permission_classes=[permissions.IsAuthenticated])
     def logout(self, _):
-            response = Response()
-            response.delete_cookie(key="refresh-token")
-            response.data = {
-                'message': 'success'
-            }
-            return response
+        response = Response()
+        response.delete_cookie(key="refresh-token")
+        response.data = {
+            'message': 'success'
+        }
+        return response
 
 
 class UserViewSet(mixins.CreateModelMixin,
