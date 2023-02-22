@@ -6,9 +6,9 @@ app_name = "coreapp"
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
-router.register (r'pages', views.PageViewSet)
-router.register (r'tags', views.TagViewSet)
-router.register (r'posts', views.PostViewSet)
+router.register(r'pages', views.PageViewSet)
+router.register(r'tags', views.TagViewSet)
+router.register(r'posts', views.PostViewSet)
+router.register(r'auth', views.AuthenticationViewSet, basename='auth')
 
 urlpatterns = router.urls
-
