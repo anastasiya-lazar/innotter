@@ -17,7 +17,7 @@ class User(AbstractUser):
     last_name = models.CharField('last name', max_length=150, blank=False)
     email = models.EmailField(unique=True, blank=False)
     image_s3_path = models.URLField(null=True, blank=True)
-    role = models.CharField(max_length=9, choices=Roles.choices, default = Roles.USER)
+    role = models.CharField(max_length=9, choices=Roles.choices, default=Roles.USER)
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
 
@@ -63,6 +63,7 @@ class Post(models.Model):
     reply_to = models.ForeignKey('Post', on_delete=models.SET_NULL, null=True, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    likes = models.ManyToManyField('User', related_name='liked', blank=True)
 
     def __str__(self):
         return self.content

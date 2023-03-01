@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'coreapp',
     'drf_standardized_errors',
-
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -51,8 +50,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'coreapp.middleware.JWTMiddleware',
-    'coreapp.middleware.SessionAuthCSRFDisableMiddleware',
+    'coreapp.services.middleware.JWTMiddleware',
+    'coreapp.services.middleware.SessionAuthCSRFDisableMiddleware',
 ]
 
 ROOT_URLCONF = 'Innotter.urls'
