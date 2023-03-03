@@ -77,7 +77,7 @@ class PageUpdateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "description", "image", "is_private", "tags", "followers", "follow_requests"]
+        fields = ["name", "description", "image", "is_private", "tags"]
 
 
 class PageOwnerModelSerializer(serializers.ModelSerializer):

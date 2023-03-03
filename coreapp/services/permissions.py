@@ -111,9 +111,10 @@ class UserPermission(permissions.BasePermission):
         if view.action == 'retrieve':
             if not obj.is_blocked or obj == request.user:
                 return True
-        elif not request.user.is_blocked:
-            if view.action == 'list_of_liked_posts' or view.action == 'partial_update':
-                return obj == request.user
+        if request.user.is_authenticated:
+            if not request.user.is_blocked:
+                if view.action == 'list_of_liked_posts' or view.action == 'partial_update':
+                    return obj == request.user
         elif view.action == 'destroy':
             return obj == request.user
         else:

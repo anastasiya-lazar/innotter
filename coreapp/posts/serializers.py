@@ -29,7 +29,7 @@ class PostCreateModelSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
-        page_id = validated_data['page']
+        page_id = validated_data['page'].id
         page = Page.objects.get(id=page_id)
         if page.unblock_date:
             raise InvalidPageException
