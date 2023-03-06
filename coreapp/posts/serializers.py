@@ -57,7 +57,7 @@ class PostUpdateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = "content"
+        fields = ("content",)
 
 
 class PostLikeModelSerializer(serializers.ModelSerializer):
@@ -70,7 +70,7 @@ class PostLikeModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ("id", "to_like", "likes")
-        read_only_fields = "likes"
+        read_only_fields = ("likes",)
 
     def update(self, instance, validated_data):
         post = super().update(instance, validated_data)
