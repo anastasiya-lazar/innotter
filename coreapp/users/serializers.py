@@ -19,12 +19,11 @@ class LoginSerializer(serializers.Serializer):
         validated_data = super().validate(attrs)
         email = validated_data['email']
         password = validated_data['password']
-        try:
-            user = User.objects.get(email=email)
-            if not user.check_password(password):
-                raise InvalidCredentialsException
-        except User.DoesNotExist:
+        user = User.objects.filter(email=email).first()
+        if not user:
             raise UserNotFoundException
+        if not user.check_password(password):
+            raise InvalidCredentialsException
         return validated_data
 
 
@@ -56,7 +55,7 @@ class UserBlockModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "is_blocked"]
+        fields = ("id", "is_blocked")
 
 
 class UserChangeRoleModelSerializer(serializers.ModelSerializer):
@@ -66,7 +65,7 @@ class UserChangeRoleModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "role"]
+        fields = ("id", "role")
 
     def update(self, instance, validated_data):
         user = super().update(instance, validated_data)
@@ -82,7 +81,7 @@ class UserListModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "username"]
+        fields = ("id", "first_name", "last_name", "username")
 
 
 class UserModelSerializer(serializers.ModelSerializer):
@@ -92,7 +91,7 @@ class UserModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "title", "password"]
+        fields = ("id", "username", "email", "first_name", "last_name", "title", "password")
         extra_kwargs = {"password": {"write_only": True, },
                         "email": {"write_only": True, }
                         }
@@ -126,7 +125,7 @@ class UserRetrieveModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name", "title", "date_joined", "is_blocked"]
+        fields = ("id", "username", "first_name", "last_name", "title", "date_joined", "is_blocked")
 
 
 class UserLikedPostsSerializer(serializers.ModelSerializer):
@@ -136,5 +135,5 @@ class UserLikedPostsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "liked"]
+        fields = ("id", "liked")
         depth = 1

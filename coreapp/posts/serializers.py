@@ -13,8 +13,8 @@ class PostModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "content", "page", "reply_to", "created_at", "updated_at"]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        fields = ("id", "content", "page", "reply_to", "created_at", "updated_at")
+        read_only_fields = ("id", "created_at", "updated_at")
 
 
 class PostCreateModelSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class PostCreateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "content", "page", "reply_to"]
+        fields = ("id", "content", "page", "reply_to")
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
@@ -44,10 +44,11 @@ class PostRetrieveModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "content", "page", "reply_to", "created_at", "updated_at", "likes"]
+        fields = ("id", "content", "page", "reply_to", "created_at", "updated_at", "likes")
 
     def get_likes(self, obj):
         return obj.likes.count()
+
 
 class PostUpdateModelSerializer(serializers.ModelSerializer):
     """
@@ -56,7 +57,7 @@ class PostUpdateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["content"]
+        fields = "content"
 
 
 class PostLikeModelSerializer(serializers.ModelSerializer):
@@ -68,8 +69,8 @@ class PostLikeModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "to_like", "likes"]
-        read_only_fields = ["likes"]
+        fields = ("id", "to_like", "likes")
+        read_only_fields = "likes"
 
     def update(self, instance, validated_data):
         post = super().update(instance, validated_data)

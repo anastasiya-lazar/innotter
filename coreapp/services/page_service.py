@@ -1,5 +1,5 @@
 from django.utils import timezone
-from coreapp.models import Page
+from coreapp.services.exceptions import UserNotFoundException
 
 
 def page_follow_unfollow(page, user, validated_data):
@@ -19,11 +19,12 @@ def page_follow_unfollow(page, user, validated_data):
 
 def accept_decline_follow_requests(validated_data, page):
     if validated_data['user_id']:
-        user = page.follow_requests.get(id=validated_data['user_id'])
-        if user:
-            page.follow_requests.remove(user)
-            if validated_data["accept"]:
-                page.followers.add(user)
+        user = page.follow_requests.filter(id=validated_data['user_id']).first()
+        if not user:
+            raise UserNotFoundException
+        page.follow_requests.remove(user)
+        if validated_data["accept"]:
+            page.followers.add(user)
     else:
         if validated_data["accept"]:
             users = page.follow_requests.all()

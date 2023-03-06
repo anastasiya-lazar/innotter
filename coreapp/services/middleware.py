@@ -3,6 +3,7 @@ from django.utils.deprecation import MiddlewareMixin
 from coreapp.services.auth_service import AuthService
 import jwt
 from django.contrib.auth.models import AnonymousUser
+from coreapp.services.exceptions import UserNotFoundException
 
 
 class SessionAuthCSRFDisableMiddleware:
@@ -31,8 +32,9 @@ class JWTMiddleware(MiddlewareMixin):
         try:
             if access_token:
                 user_id = auth.decode_token(access_token)
-                user = User.objects.get(pk=user_id)
-                if user:
-                    request.user = user
+                user = User.objects.filter(pk=user_id).first()
+                if not user:
+                    raise UserNotFoundException
+                request.user = user
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, jwt.DecodeError, IndexError):
             request.user = AnonymousUser()

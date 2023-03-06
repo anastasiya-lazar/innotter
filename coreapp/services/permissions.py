@@ -12,9 +12,9 @@ class PageModelPermission(permissions.BasePermission):
             return True
         elif view.action == 'create':
             return request.user.is_authenticated and not request.user.is_blocked
-        elif view.action in ['retrieve', 'partial_update', 'destroy', 'follow_and_unfollow_page',
+        elif view.action in ('retrieve', 'partial_update', 'destroy', 'follow_and_unfollow_page',
                              'get_list_follow_requests', 'accept_or_decline_follow_requests',
-                             'block_page']:
+                             'block_page'):
             return True
         else:
             return False
@@ -53,7 +53,7 @@ class PostModelPermission(permissions.BasePermission):
             return True
         elif view.action == 'create':
             return request.user.is_authenticated and not request.user.is_blocked
-        elif view.action in ['like_and_unlike_post', 'retrieve', 'partial_update', 'destroy']:
+        elif view.action in ('like_and_unlike_post', 'retrieve', 'partial_update', 'destroy'):
             return True
         else:
             return False
@@ -102,7 +102,7 @@ class UserPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'list' or view.action == 'create':
             return True
-        elif view.action in ['list_of_liked_posts', 'retrieve', 'partial_update', 'destroy']:
+        elif view.action in ('list_of_liked_posts', 'retrieve', 'partial_update', 'destroy'):
             return True
         else:
             return False

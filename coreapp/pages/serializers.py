@@ -12,7 +12,7 @@ class PageForPostModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "description", "image"]
+        fields = ("name", "description", "image")
 
 
 class PageBlockModelSerializer(serializers.ModelSerializer):
@@ -32,8 +32,8 @@ class PageModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "name", "description", "image", "is_private", "owner", "tags"]
-        read_only_fields = ["id", "owner"]
+        fields = ("id", "name", "description", "image", "is_private", "owner", "tags")
+        read_only_fields = ("id", "owner")
 
     def create(self, validated_data):
         validated_data["owner"] = self.context["request"].user
@@ -49,7 +49,7 @@ class PageListModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "name", "description", "image", "owner", "is_private", "tags"]
+        fields = ("id", "name", "description", "image", "owner", "is_private", "tags")
 
 
 class PageRetrieveModelSerializer(serializers.ModelSerializer):
@@ -62,7 +62,7 @@ class PageRetrieveModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "description", "image", "owner", "is_private", "tags", "followers"]
+        fields = ("name", "description", "image", "owner", "is_private", "tags", "followers")
 
     def get_followers(self, obj):
         return obj.followers.count()
@@ -75,7 +75,7 @@ class PageUpdateModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "description", "image", "is_private", "tags"]
+        fields = ("name", "description", "image", "is_private", "tags")
 
 
 class PageOwnerModelSerializer(serializers.ModelSerializer):
@@ -86,7 +86,7 @@ class PageOwnerModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "owner"]
+        fields = ("name", "owner")
 
 
 class PageFollowSerializer(serializers.ModelSerializer):
@@ -97,8 +97,8 @@ class PageFollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "follow", "followers", "follow_requests"]
-        read_only_fields = ["followers", "follow_requests"]
+        fields = ("id", "follow", "followers", "follow_requests")
+        read_only_fields = ("followers", "follow_requests")
 
     def update(self, instance, validated_data):
         page = super().update(instance, validated_data)
@@ -117,7 +117,7 @@ class PageListFollowRequestsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "follow_requests"]
+        fields = ("id", "follow_requests")
 
 
 class PageAcceptFollowRequestsSerializer(serializers.ModelSerializer):
@@ -129,8 +129,8 @@ class PageAcceptFollowRequestsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "accept", "user_id", "follow_requests", "followers"]
-        read_only_fields = ["follow_requests", "followers"]
+        fields = ("id", "accept", "user_id", "follow_requests", "followers")
+        read_only_fields = ("follow_requests", "followers")
 
     def update(self, instance, validated_data):
         page = super().update(instance, validated_data)
