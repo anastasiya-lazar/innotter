@@ -1,5 +1,5 @@
 from coreapp.models import User
-from coreapp.services.exceptions import UserNotFoundException
+from rest_framework.exceptions import APIException
 
 
 def like_or_unlike(post, validated_data, user):
@@ -10,5 +10,5 @@ def like_or_unlike(post, validated_data, user):
             user_like = post.likes.get(id=user.id)
             post.likes.remove(user_like)
         except User.DoesNotExist:
-            raise UserNotFoundException
+            raise APIException("You can not unlike post")
     return post

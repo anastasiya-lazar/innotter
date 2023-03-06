@@ -35,7 +35,7 @@ class PageModelPermission(permissions.BasePermission):
                 return request.user.is_authenticated and obj.owner != request.user
             elif view.action == 'partial_update':
                 return obj.owner == request.user
-        elif view.action == 'destroy':
+        if view.action == 'destroy':
             return obj.owner == request.user
         elif view.action == 'block_page':
             return request.user.is_staff

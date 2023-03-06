@@ -1,4 +1,4 @@
-from coreapp.models import User
+from coreapp.models import User, Page
 import datetime
 
 
@@ -12,20 +12,11 @@ def change_user_status(user, role):
     elif role == User.Roles.USER:
         user.is_staff = False
         user.is_superuser = False
-    user.save()
+    user.save(update_fields=["is_staff", "is_superuser"])
 
 
 def block_users_pages(user, serializer):
     if serializer.data['is_blocked']:
-        pages = user.pages.all()
-        if pages:
-            for page in pages:
-                print(datetime.timedelta.max)
-                page.unblock_date = datetime.datetime.max
-                page.save()
+        Page.objects.filter(owner=user).update(unblock_date=datetime.datetime.max)
     else:
-        pages = user.pages.all()
-        if pages:
-            for page in pages:
-                page.unblock_date = None
-                page.save()
+        Page.objects.filter(owner=user).update(unblock_date=None)

@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.db.models import Count
 from coreapp.models import Page
 from coreapp.tags.serializers import TagModelSerializer
 from coreapp.users.serializers import UserModelSerializer, UserListModelSerializer
@@ -23,7 +22,7 @@ class PageBlockModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["id", "unblock_date"]
+        fields = ("id", "unblock_date")
 
 
 class PageModelSerializer(serializers.ModelSerializer):
@@ -33,8 +32,8 @@ class PageModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["name", "description", "image", "is_private", "owner", "tags"]
-        read_only_fields = ["owner"]
+        fields = ["id", "name", "description", "image", "is_private", "owner", "tags"]
+        read_only_fields = ["id", "owner"]
 
     def create(self, validated_data):
         validated_data["owner"] = self.context["request"].user
@@ -66,8 +65,7 @@ class PageRetrieveModelSerializer(serializers.ModelSerializer):
         fields = ["name", "description", "image", "owner", "is_private", "tags", "followers"]
 
     def get_followers(self, obj):
-        q = Page.objects.all().annotate(num_followers=Count('followers'))
-        return q.get(id=obj.id).num_followers
+        return obj.followers.count()
 
 
 class PageUpdateModelSerializer(serializers.ModelSerializer):
@@ -136,6 +134,5 @@ class PageAcceptFollowRequestsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         page = super().update(instance, validated_data)
-        p = accept_decline_follow_requests(validated_data, page)
-        return p
-
+        page_instance = accept_decline_follow_requests(validated_data, page)
+        return page_instance

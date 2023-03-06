@@ -103,9 +103,7 @@ class UserModelSerializer(serializers.ModelSerializer):
         errors = dict()
         try:
             validators.validate_password(password=password, user=user)
-        except exceptions.ValidationError as e:
-            errors["password"] = list(e.messages)
-        if errors:
+        except errors:
             raise serializers.ValidationError(errors)
         return super(UserModelSerializer, self).validate(data)
 

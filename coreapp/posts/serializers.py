@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from coreapp.models import Post, Page
-from django.db.models import Count
 from coreapp.pages.serializers import PageForPostModelSerializer
 from coreapp.services.post_service import like_or_unlike
 from coreapp.services.exceptions import InvalidPageException
@@ -30,10 +29,10 @@ class PostCreateModelSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         validated_data = super().validate(attrs)
         page_id = validated_data['page'].id
-        page = Page.objects.get(id=page_id)
-        if page.unblock_date:
+        if Page.objects.filter(id=page_id, unblock_date__isnull=True).exists():
+            return validated_data
+        else:
             raise InvalidPageException
-        return validated_data
 
 
 class PostRetrieveModelSerializer(serializers.ModelSerializer):
@@ -48,9 +47,7 @@ class PostRetrieveModelSerializer(serializers.ModelSerializer):
         fields = ["id", "content", "page", "reply_to", "created_at", "updated_at", "likes"]
 
     def get_likes(self, obj):
-        q = Post.objects.all().annotate(num_likes=Count('likes'))
-        return q.get(id=obj.id).num_likes
-
+        return obj.likes.count()
 
 class PostUpdateModelSerializer(serializers.ModelSerializer):
     """
@@ -78,6 +75,6 @@ class PostLikeModelSerializer(serializers.ModelSerializer):
         post = super().update(instance, validated_data)
         request = self.context.get("request")
         user = request.user
-        p = like_or_unlike(post, validated_data, user)
+        like_post = like_or_unlike(post, validated_data, user)
         validated_data.pop("to_like", None)
-        return p
+        return like_post

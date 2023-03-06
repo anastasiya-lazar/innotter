@@ -19,7 +19,6 @@ class JWTMiddleware(MiddlewareMixin):
     @staticmethod
     def process_request(request):
         access_token = None
-        refresh_token = request.COOKIES.get('refresh_token')
         authorization_header = request.META.get('HTTP_AUTHORIZATION')
         auth = AuthService()
         if authorization_header:
@@ -35,7 +34,5 @@ class JWTMiddleware(MiddlewareMixin):
                 user = User.objects.get(pk=user_id)
                 if user:
                     request.user = user
-            elif refresh_token:
-                user_id = auth.decode_token(refresh_token)
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, jwt.DecodeError, IndexError):
             request.user = AnonymousUser()

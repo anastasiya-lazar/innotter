@@ -28,14 +28,14 @@ class AuthenticationViewSet(viewsets.GenericViewSet):
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tokens_data = AuthService().get_user_and_generate_tokens(serializer.validated_data['email'])
+        tokens_data = AuthService().get_user_and_generate_tokens(email=serializer.validated_data['email'])
         return Response(TokenSerializer(tokens_data).data)
 
     @action(detail=False, methods=['post'])
     def refresh(self, request):
         serializer = RefreshSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_id = AuthService().decode_token(serializer.validated_data['refresh_token'])
+        user_id = AuthService().validate_token(serializer.validated_data['refresh_token'])
         tokens_data = AuthService().generate_access_and_refresh_token(user_id)
         return Response(TokenSerializer(tokens_data).data)
 

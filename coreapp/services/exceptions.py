@@ -7,12 +7,12 @@ class RefreshTokenException(APIException):
 
 
 class InvalidCredentialsException(APIException):
-    status_code = 400
+    status_code = 401
     default_detail = 'Invalid Credentials. Try again.'
 
 
 class UserNotFoundException(APIException):
-    status_code = 400
+    status_code = 404
     default_detail = 'User not found.'
 
 

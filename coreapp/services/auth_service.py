@@ -44,15 +44,16 @@ class AuthService:
             "refresh_token": refresh_token
         }
 
-    def get_user_and_generate_tokens(self, *args):
-        email = args[0]
-        user = User.objects.get(email=email)
-        tokens = self.generate_access_and_refresh_token(user.id)
-        return tokens
+    def get_user_and_generate_tokens(self, email):
+        user = User.objects.filter(email=email).first()
+        if user:
+            tokens = self.generate_access_and_refresh_token(user.id)
+            return tokens
 
     def validate_token(self, token):
         try:
-            jwt.decode(token, self.key, algorithms=self.JWT_ALGORITHM)
+            user_id = self.decode_token(token)
+            return user_id
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, jwt.DecodeError):
             raise RefreshTokenException
 

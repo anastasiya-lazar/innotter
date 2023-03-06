@@ -6,6 +6,7 @@ from coreapp.pages.serializers import (PageFollowSerializer, PageUpdateModelSeri
                                        PageListFollowRequestsSerializer, PageAcceptFollowRequestsSerializer,
                                        PageRetrieveModelSerializer, PageBlockModelSerializer, PageModelSerializer)
 from coreapp.services.permissions import PageModelPermission
+from rest_framework import status
 
 
 class PageViewSet(
@@ -46,45 +47,42 @@ class PageViewSet(
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.serializer_classes['default'])
 
-    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser], url_name="block_page")
     def block_page(self, request, pk=None):
         page = self.get_object()
         serializer = self.get_serializer(page, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            {'message': f"Page with id-{serializer.data['id']} is blocked until {serializer.data['unblock_date']}"})
+            {'message': f"Page with id-{serializer.data['id']} is blocked until {serializer.data['unblock_date']}"},
+            status=status.HTTP_200_OK
+        )
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], url_name="follow_and_unfollow_page")
     def follow_and_unfollow_page(self, request, pk=None):
         page = self.get_object()
         serializer = self.get_serializer(page, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'message': 'Success'})
+        return Response({'message': 'Success'}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_name="get_list_follow_requests")
     def get_list_follow_requests(self, request, pk=None):
         page = self.get_object()
         serializer = self.get_serializer(page, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'], url_name="accept_or_decline_follow_requests")
     def accept_or_decline_follow_requests(self, request, pk=None):
         page = self.get_object()
         serializer = self.get_serializer(page, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        if serializer.validated_data['accept']:
-            if serializer.validated_data['user_id']:
-                return Response({
-                    'message': f"Follow request from user with id {serializer.validated_data['user_id']} was accepted"})
-            else:
-                return Response({'message': "All follow requests are accepted"})
+        follow_requests_status = 'accepted' if serializer.data['accept'] else "declined"
+        if serializer.validated_data['user_id']:
+            return Response({
+                'message': f"Follow request from user with id {serializer.validated_data['user_id']} was {follow_requests_status}"},
+                status=status.HTTP_200_OK)
         else:
-            if serializer.validated_data['user_id']:
-                return Response({
-                    'message': f"Follow request from user with id {serializer.validated_data['user_id']} was declined"})
-            else:
-                return Response({'message': "All follow requests are declined"})
+            return Response({'message': f"All follow requests are {follow_requests_status}"}, status=status.HTTP_200_OK)
