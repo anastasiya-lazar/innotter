@@ -11,7 +11,7 @@ class SessionAuthCSRFDisableMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        setattr(request, '_dont_enforce_csrf_checks', True)
+        setattr(request, "_dont_enforce_csrf_checks", True)
         response = self.get_response(request)
         return response
 
@@ -20,12 +20,12 @@ class JWTMiddleware(MiddlewareMixin):
     @staticmethod
     def process_request(request):
         access_token = None
-        authorization_header = request.META.get('HTTP_AUTHORIZATION')
+        authorization_header = request.META.get("HTTP_AUTHORIZATION")
         auth = AuthService()
         if authorization_header:
             try:
-                token_type, token = authorization_header.split(' ')
-                if token_type.lower() == 'bearer':
+                token_type, token = authorization_header.split(" ")
+                if token_type.lower() == "bearer":
                     access_token = token
             except ValueError:
                 request.user = AnonymousUser()

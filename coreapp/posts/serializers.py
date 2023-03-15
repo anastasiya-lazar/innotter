@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from coreapp.models import Post, Page
 from coreapp.pages.serializers import PageForPostModelSerializer
-from coreapp.services.post_service import like_or_unlike
+from coreapp.services.post_service import PostService
 from coreapp.services.exceptions import InvalidPageException
 
 
@@ -28,7 +28,7 @@ class PostCreateModelSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
-        page_id = validated_data['page'].id
+        page_id = validated_data["page"].id
         if Page.objects.filter(id=page_id, unblock_date__isnull=True).exists():
             return validated_data
         else:
@@ -75,7 +75,5 @@ class PostLikeModelSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         post = super().update(instance, validated_data)
         request = self.context.get("request")
-        user = request.user
-        like_post = like_or_unlike(post, validated_data, user)
-        validated_data.pop("to_like", None)
+        like_post = PostService().add_likes(post, validated_data, request)
         return like_post

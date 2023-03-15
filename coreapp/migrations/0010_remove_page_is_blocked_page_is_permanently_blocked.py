@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coreapp', '0009_page_is_blocked'),
+        ("coreapp", "0009_page_is_blocked"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='page',
-            name='is_blocked',
+            model_name="page",
+            name="is_blocked",
         ),
         migrations.AddField(
-            model_name='page',
-            name='is_permanently_blocked',
+            model_name="page",
+            name="is_permanently_blocked",
             field=models.BooleanField(default=False),
         ),
     ]

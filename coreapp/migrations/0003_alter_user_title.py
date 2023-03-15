@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coreapp', '0002_alter_page_uuid'),
+        ("coreapp", "0002_alter_page_uuid"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='title',
+            model_name="user",
+            name="title",
             field=models.CharField(blank=True, max_length=80, null=True),
         ),
     ]

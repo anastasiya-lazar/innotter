@@ -6,34 +6,34 @@ from coreapp.services.exceptions import RefreshTokenException
 
 
 class AuthService:
-    key = os.environ.get('JWT_SECRET')
-    JWT_ACCESS_TTL = int(os.environ.get('JWT_ACCESS_TTL'))
-    JWT_REFRESH_TTL = int(os.environ.get('JWT_REFRESH_TTL'))
-    JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM')
+    key = os.environ.get("JWT_SECRET")
+    JWT_ACCESS_TTL = int(os.environ.get("JWT_ACCESS_TTL"))
+    JWT_REFRESH_TTL = int(os.environ.get("JWT_REFRESH_TTL"))
+    JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM")
 
     def create_access_token(self, user_id):
         payload = {
-            'iss': 'backend-api',
-            'user_id': user_id,
-            'exp': datetime.utcnow() + timedelta(minutes=self.JWT_ACCESS_TTL),
-            'type': 'access'
+            "iss": "backend-api",
+            "user_id": user_id,
+            "exp": datetime.utcnow() + timedelta(minutes=self.JWT_ACCESS_TTL),
+            "type": "access"
         }
         access = jwt.encode(payload, self.key, algorithm=self.JWT_ALGORITHM)
         return access
 
     def create_refresh_token(self, user_id):
         payload = {
-            'iss': 'backend-api',
-            'user_id': user_id,
-            'exp': datetime.utcnow() + timedelta(weeks=self.JWT_REFRESH_TTL),
-            'type': 'access'
+            "iss": "backend-api",
+            "user_id": user_id,
+            "exp": datetime.utcnow() + timedelta(weeks=self.JWT_REFRESH_TTL),
+            "type": "access"
         }
         refresh = jwt.encode(payload, self.key, algorithm=self.JWT_ALGORITHM)
         return refresh
 
     def decode_token(self, token):
         payload = jwt.decode(token, self.key, algorithms=self.JWT_ALGORITHM)
-        user_id = payload['user_id']
+        user_id = payload["user_id"]
         return user_id
 
     def generate_access_and_refresh_token(self, user_id):

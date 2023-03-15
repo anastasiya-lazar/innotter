@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from django.core import exceptions
 import django.contrib.auth.password_validation as validators
 from coreapp.models import User
 from coreapp.services.exceptions import InvalidCredentialsException, UserNotFoundException
 from coreapp.services.auth_service import AuthService
-from coreapp.services.user_service import change_user_status
+from coreapp.services.user_service import UserService
+from rest_framework import exceptions
 
 
 class LoginSerializer(serializers.Serializer):
@@ -17,8 +17,8 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
-        email = validated_data['email']
-        password = validated_data['password']
+        email = validated_data["email"]
+        password = validated_data["password"]
         user = User.objects.filter(email=email).first()
         if not user:
             raise UserNotFoundException
@@ -43,7 +43,7 @@ class RefreshSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
-        refresh_token = validated_data['refresh_token']
+        refresh_token = validated_data["refresh_token"]
         AuthService().validate_token(refresh_token)
         return validated_data
 
@@ -70,7 +70,7 @@ class UserChangeRoleModelSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user = super().update(instance, validated_data)
         role = validated_data["role"]
-        change_user_status(user, role)
+        UserService().change_user_status(user, role)
         return user
 
 
@@ -86,24 +86,25 @@ class UserListModelSerializer(serializers.ModelSerializer):
 
 class UserModelSerializer(serializers.ModelSerializer):
     """
-    A Default Serializer for User model with implementations of 'validate()' - for password validation and 'create()' methods
+    A Default Serializer for User model with implementations of "validate()" - for password validation and "create()" methods
     """
 
     class Meta:
         model = User
         fields = ("id", "username", "email", "first_name", "last_name", "title", "password")
-        extra_kwargs = {"password": {"write_only": True, },
-                        "email": {"write_only": True, }
-                        }
+        extra_kwargs = {
+            "password": {"write_only": True, },
+            "email": {"write_only": True, }
+        }
 
     def validate(self, data):
         user = User(**data)
         password = data.get("password")
-        errors = dict()
-        try:
-            validators.validate_password(password=password, user=user)
-        except errors:
-            raise serializers.ValidationError(errors)
+        if password:
+            try:
+                validators.validate_password(password=password, user=user)
+            except exceptions.ValidationError:
+                raise serializers.ValidationError
         return super(UserModelSerializer, self).validate(data)
 
     def create(self, validated_data):

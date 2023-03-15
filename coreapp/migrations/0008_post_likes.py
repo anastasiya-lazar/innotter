@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coreapp', '0007_alter_user_role'),
+        ("coreapp", "0007_alter_user_role"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='likes',
-            field=models.ManyToManyField(blank=True, related_name='liked', to=settings.AUTH_USER_MODEL),
+            model_name="post",
+            name="likes",
+            field=models.ManyToManyField(blank=True, related_name="liked", to=settings.AUTH_USER_MODEL),
         ),
     ]

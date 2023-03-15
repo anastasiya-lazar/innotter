@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coreapp', '0010_remove_page_is_blocked_page_is_permanently_blocked'),
+        ("coreapp", "0010_remove_page_is_blocked_page_is_permanently_blocked"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='page',
-            name='is_permanently_blocked',
+            model_name="page",
+            name="is_permanently_blocked",
         ),
     ]

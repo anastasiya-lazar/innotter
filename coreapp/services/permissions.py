@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from coreapp.services.page_service import clear_unblock_date
+from coreapp.services.page_service import PageService
 
 
 class PageModelPermission(permissions.BasePermission):
@@ -8,36 +8,42 @@ class PageModelPermission(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if view.action == 'list':
+        if view.action == "list":
             return True
-        elif view.action == 'create':
+        elif view.action == "create":
             return request.user.is_authenticated and not request.user.is_blocked
-        elif view.action in ('retrieve', 'partial_update', 'destroy', 'follow_and_unfollow_page',
-                             'get_list_follow_requests', 'accept_or_decline_follow_requests',
-                             'block_page'):
+        elif view.action in (
+            "retrieve",
+            "partial_update",
+            "destroy",
+            "follow_and_unfollow_page",
+            "get_list_follow_requests",
+            "accept_or_decline_follow_requests",
+            "block_page"
+        ):
             return True
         else:
             return False
 
     def has_object_permission(self, request, view, obj):
         if obj.unblock_date:
-            clear_unblock_date(obj)
+            PageService().clear_unblock_date(obj)
         if not obj.unblock_date:
-            if view.action == 'retrieve':
+            if view.action == "retrieve":
                 return True
-            elif view.action == 'get_list_follow_requests':
+            elif view.action in (
+                "get_list_follow_requests",
+                "accept_or_decline_follow_requests"
+            ):
                 if obj.is_private:
                     return obj.owner == request.user
-            elif view.action == 'accept_or_decline_follow_requests':
-                if obj.is_private:
-                    return obj.owner == request.user
-            elif view.action == 'follow_and_unfollow_page':
+            elif view.action == "follow_and_unfollow_page":
                 return request.user.is_authenticated and obj.owner != request.user
-            elif view.action == 'partial_update':
+            elif view.action == "partial_update":
                 return obj.owner == request.user
-        if view.action == 'destroy':
+        if view.action == "destroy":
             return obj.owner == request.user
-        elif view.action == 'block_page':
+        elif view.action == "block_page":
             return request.user.is_staff
         else:
             return False
@@ -49,11 +55,17 @@ class PostModelPermission(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if view.action == 'list':
+        if view.action == "list":
             return True
-        elif view.action == 'create':
-            return request.user.is_authenticated and not request.user.is_blocked
-        elif view.action in ('like_and_unlike_post', 'retrieve', 'partial_update', 'destroy'):
+        elif view.action == "create":
+            if request.user.is_authenticated and not request.user.is_blocked:
+                return True
+        elif view.action in (
+            "like_and_unlike_post",
+            "retrieve",
+            "partial_update",
+            "destroy"
+        ):
             return True
         else:
             return False
@@ -62,12 +74,13 @@ class PostModelPermission(permissions.BasePermission):
         if obj.page.unblock_date:
             return False
         else:
-            if view.action == 'retrieve' or view.action == 'like_and_unlike_post':
+            if view.action == "retrieve" or view.action == "like_and_unlike_post":
                 return True
-            elif view.action == 'partial_update':
-                return obj == request.user
-        if view.action == 'destroy':
-            return obj == request.user or request.user.is_staff
+            elif view.action == "partial_update":
+                if obj.page in request.user.pages.all():
+                    return True
+        if view.action == "destroy":
+            return obj.page in request.user.pages.all() or request.user.is_staff
         else:
             return False
 
@@ -78,44 +91,48 @@ class TagModelPermission(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if view.action == 'list':
+        if view.action == "list":
             return True
-        elif view.action == 'create':
+        elif view.action == "create":
             return request.user.is_authenticated and not request.user.is_blocked
-        elif view.action == 'destroy':
+        elif view.action == "destroy":
             return True
         else:
             return False
 
     def has_object_permission(self, request, view, obj):
-        if view.action == 'destroy':
+        if view.action == "destroy":
             return obj == request.user and not request.user.is_blocked or request.user.is_staff
         else:
             return False
 
 
-class UserPermission(permissions.BasePermission):
+class UserModelPermission(permissions.BasePermission):
     """
-        A class for Page Model which specifies permissions for all actions except 'block_user' and 'change_user_role'.
+        A class for Page Model which specifies permissions for all actions except "block_user" and "change_user_role".
     """
 
     def has_permission(self, request, view):
-        if view.action == 'list' or view.action == 'create':
+        if view.action == "list" or view.action == "create":
             return True
-        elif view.action in ('list_of_liked_posts', 'retrieve', 'partial_update', 'destroy'):
+        elif view.action in (
+            "list_of_liked_posts",
+            "retrieve",
+            "partial_update",
+            "destroy"
+        ):
             return True
         else:
             return False
 
     def has_object_permission(self, request, view, obj):
-        if view.action == 'retrieve':
+        if view.action == "destroy":
+            return obj == request.user
+        if view.action == "retrieve":
             if not obj.is_blocked or obj == request.user:
                 return True
-        elif view.action == 'destroy':
-            return obj == request.user
-        if request.user.is_authenticated:
-            if not request.user.is_blocked:
-                if view.action == 'list_of_liked_posts' or view.action == 'partial_update':
-                    return obj == request.user
+        elif request.user.is_authenticated and not request.user.is_blocked:
+            if view.action == "list_of_liked_posts" or view.action == "partial_update":
+                return obj == request.user
         else:
             return False

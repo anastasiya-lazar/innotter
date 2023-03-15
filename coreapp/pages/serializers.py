@@ -2,7 +2,7 @@ from rest_framework import serializers
 from coreapp.models import Page
 from coreapp.tags.serializers import TagModelSerializer
 from coreapp.users.serializers import UserModelSerializer, UserListModelSerializer
-from coreapp.services.page_service import page_follow_unfollow, accept_decline_follow_requests
+from coreapp.services.page_service import PageService
 
 
 class PageForPostModelSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class PageBlockModelSerializer(serializers.ModelSerializer):
 
 class PageModelSerializer(serializers.ModelSerializer):
     """
-    A Default Serializer for Page model with implementation of 'create()' method
+    A Default Serializer for Page model with implementation of "create()" method
     """
 
     class Meta:
@@ -104,8 +104,8 @@ class PageFollowSerializer(serializers.ModelSerializer):
         page = super().update(instance, validated_data)
         request = self.context.get("request")
         user = request.user
-        page = page_follow_unfollow(page, user, validated_data)
-        validated_data.pop('follow', None)
+        page = PageService().page_follow_unfollow(page, user, validated_data)
+        validated_data.pop("follow", None)
         return page
 
 
@@ -125,7 +125,7 @@ class PageAcceptFollowRequestsSerializer(serializers.ModelSerializer):
         A Serializer for Page model (accept_or_decline_follow_requests action)
     """
     accept = serializers.BooleanField(default=True)
-    user_id = serializers.IntegerField(required=False, allow_null=True)
+    user_id = serializers.IntegerField(required=False)
 
     class Meta:
         model = Page
@@ -134,5 +134,9 @@ class PageAcceptFollowRequestsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         page = super().update(instance, validated_data)
-        page_instance = accept_decline_follow_requests(validated_data, page)
+        try:
+            user_id = validated_data["user_id"]
+        except KeyError:
+            user_id = None
+        page_instance = PageService().accept_decline_follow_requests(validated_data, user_id, page)
         return page_instance

@@ -9,13 +9,13 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         *UserAdmin.add_fieldsets,
         (
-            'Custom fields',
+            "Custom fields",
             {
-                'fields': (
-                    'image_s3_path',
-                    'role',
-                    'title',
-                    'is_blocked',
+                "fields": (
+                    "image_s3_path",
+                    "role",
+                    "title",
+                    "is_blocked",
                 )
             }
         )
@@ -25,13 +25,13 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         *UserAdmin.fieldsets,
         (
-            'Custom fields',
+            "Custom fields",
             {
-                'fields': (
-                    'image_s3_path',
-                    'role',
-                    'title',
-                    'is_blocked',   
+                "fields": (
+                    "image_s3_path",
+                    "role",
+                    "title",
+                    "is_blocked",
                 )
             }
         )
