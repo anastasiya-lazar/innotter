@@ -1,0 +1,8 @@
+[run]
+omit = */tests/*
+       */migrations/*
+       *manage.py*
+       *__init__.py*
+
+[xml]
+output = ./coverage-reports/coverage-report/xml
