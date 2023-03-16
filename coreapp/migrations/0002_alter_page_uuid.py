@@ -7,13 +7,13 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coreapp', '0001_initial'),
+        ("coreapp", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
+            model_name="page",
+            name="uuid",
             field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
         ),
     ]

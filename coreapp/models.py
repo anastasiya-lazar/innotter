@@ -9,15 +9,15 @@ class User(AbstractUser):
     """
 
     class Roles(models.TextChoices):
-        USER = 'user'
-        MODERATOR = 'moderator'
-        ADMIN = 'admin'
+        USER = "user"
+        MODERATOR = "moderator"
+        ADMIN = "admin"
 
-    first_name = models.CharField('first name', max_length=150, blank=False)
-    last_name = models.CharField('last name', max_length=150, blank=False)
+    first_name = models.CharField("first name", max_length=150, blank=False)
+    last_name = models.CharField("last name", max_length=150, blank=False)
     email = models.EmailField(unique=True, blank=False)
     image_s3_path = models.URLField(null=True, blank=True)
-    role = models.CharField(max_length=9, choices=Roles.choices, default = Roles.USER)
+    role = models.CharField(max_length=9, choices=Roles.choices, default=Roles.USER)
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
 
@@ -42,12 +42,12 @@ class Page(models.Model):
     name = models.CharField(max_length=80, blank=False)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     description = models.TextField(blank=True)
-    tags = models.ManyToManyField('Tag', related_name='pages', blank=True)
-    owner = models.ForeignKey('User', on_delete=models.CASCADE, related_name='pages')
-    followers = models.ManyToManyField('User', related_name='follows', blank=True)
+    tags = models.ManyToManyField("Tag", related_name="pages", blank=True)
+    owner = models.ForeignKey("User", on_delete=models.CASCADE, related_name="pages")
+    followers = models.ManyToManyField("User", related_name="follows", blank=True)
     image = models.URLField(null=True, blank=True)
     is_private = models.BooleanField(default=False)
-    follow_requests = models.ManyToManyField('User', related_name='requests', blank=True)
+    follow_requests = models.ManyToManyField("User", related_name="requests", blank=True)
     unblock_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -58,11 +58,12 @@ class Post(models.Model):
     """
     A class implementing a Post model. Has relationships with Page and Post models. Content field is required.
     """
-    page = models.ForeignKey('Page', on_delete=models.CASCADE, related_name='posts')
+    page = models.ForeignKey("Page", on_delete=models.CASCADE, related_name="posts")
     content = models.CharField(max_length=180, blank=False)
-    reply_to = models.ForeignKey('Post', on_delete=models.SET_NULL, null=True, related_name='replies')
+    reply_to = models.ForeignKey("Post", on_delete=models.SET_NULL, null=True, related_name="replies")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    likes = models.ManyToManyField("User", related_name="liked", blank=True)
 
     def __str__(self):
         return self.content

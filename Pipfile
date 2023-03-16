@@ -11,6 +11,7 @@ djangorestframework = '3.14.0'
 drf_yasg = '1.21.4'
 pyjwt = '2.6.0'
 drf-standardized-errors = '0.12.5'
+django-debug-toolbar = {editable = true, git = "https://github.com/jazzband/django-debug-toolbar.git"}
 
 [dev-packages]
 
