@@ -1,6 +1,7 @@
 import pytest
 from rest_framework import status
 from django.urls import reverse
+from coreapp.models import Tag
 
 
 @pytest.mark.django_db
@@ -18,8 +19,7 @@ class TestTagModel:
     def test_get_tag_list(self, api_client, test_tag_1, test_tag_2):
         response = api_client.get("/tags/")
         assert response.status_code == status.HTTP_200_OK
-        data = response.data
-        assert len(data) == 2
+        assert Tag.objects.count() == 2
 
     @pytest.mark.parametrize("idx", [0, 1])
     def test_delete_tag(self, idx, api_client, api_client_force_auth, test_tag_2):

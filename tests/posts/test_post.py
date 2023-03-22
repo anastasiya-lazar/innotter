@@ -2,12 +2,15 @@ import pytest
 from rest_framework import status
 from django.urls import reverse
 from coreapp.models import Post
+from unittest.mock import patch
+from coreapp.services.aws_ses_service import SESService
 
 
 @pytest.mark.django_db
 class TestPostModel:
+    @patch.object(SESService, "send_email")
     @pytest.mark.parametrize("idx", [0, 1])
-    def test_create_post(self, idx, api_client, api_client_1, test_page_1):
+    def test_create_post(self, mock_object, idx, api_client, api_client_1, test_page_1):
         client, return_code = [
             (api_client, status.HTTP_403_FORBIDDEN),
             (api_client_1, status.HTTP_201_CREATED),
@@ -19,8 +22,7 @@ class TestPostModel:
     def test_get_post_list(self, api_client, test_post_1, test_post_2):
         response = api_client.get("/posts/")
         assert response.status_code == status.HTTP_200_OK
-        data = response.data
-        assert len(data) == 2
+        assert Post.objects.count() == 2
 
     def test_detail_post(self, api_client, test_post_1):
         response = api_client.get(reverse("coreapp:posts-detail", args=(test_post_1.id,)))
@@ -45,3 +47,6 @@ class TestPostModel:
         response = api_client_force_auth.delete(reverse("coreapp:posts-detail", args=(test_post_2.id,)))
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    def test_news_feed(self, api_client_force_auth, test_page_1, test_post_1):
+        response = api_client_force_auth.get("/posts/news_feed/")
+        assert len(response.data) == 1

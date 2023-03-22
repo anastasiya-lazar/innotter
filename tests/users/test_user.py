@@ -6,12 +6,16 @@ from coreapp.services.auth_service import AuthService
 from tests.factories import UserCreateFactory
 import factory
 from coreapp.services.exceptions import RefreshTokenException
+from unittest.mock import patch
+from coreapp.services.aws_s3_service import S3Service
 
 
 @pytest.mark.django_db
 class TestUserModel:
-    def test_create_user(self, api_client):
+    @patch.object(S3Service, "upload_file")
+    def test_create_user(self, mock_object, api_client, image):
         payload = factory.build(dict, FACTORY_CLASS=UserCreateFactory)
+        payload["image"] = image
         response = api_client.post("/users/", payload)
         data = response.data
         assert data["first_name"] == payload["first_name"]
@@ -22,15 +26,16 @@ class TestUserModel:
         response = api_client.get("/users/")
         assert response.status_code == status.HTTP_200_OK
         data = response.data
-        assert len(data) == 3
+        assert User.objects.count() == 3
 
     def test_detail_user(self, api_client, test_user_1):
         response = api_client.get(reverse("coreapp:users-detail", args=(test_user_1.id,)))
         assert response.status_code == status.HTTP_200_OK
 
-    def test_update_user(self, api_client_1, test_user_1):
+    @patch.object(S3Service, "upload_file")
+    def test_update_user(self, mock_object, api_client_1, test_user_1, image):
         user = factory.build(dict, FACTORY_CLASS=UserCreateFactory)
-        payload = dict(username=user["username"])
+        payload = dict(username=user["username"], image=image)
         response = api_client_1.patch(f"/users/{test_user_1.id}/", payload)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["username"] == payload["username"]

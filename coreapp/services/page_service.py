@@ -1,6 +1,7 @@
 from django.utils import timezone
-from coreapp.services.exceptions import UserNotFoundException
+from coreapp.services.aws_s3_service import S3Service
 from django.shortcuts import get_object_or_404
+import copy
 
 
 class PageService:
@@ -38,3 +39,20 @@ class PageService:
         if obj.unblock_date <= timezone.now():
             obj.unblock_date = None
             obj.save()
+
+    def upload_page_image_to_s3(self, image, page):
+        object_name = f"page_{page.id}_image"
+        try:
+            S3Service().upload_file(file_name=image, object_name=object_name)
+            page.image = object_name
+            page.save()
+        except KeyError:
+            page = None
+
+    def get_page_image(self, validated_data):
+        try:
+            page_image = copy.copy(validated_data["page_image"])
+            validated_data.pop("page_image", None)
+        except KeyError:
+            page_image = None
+        return page_image

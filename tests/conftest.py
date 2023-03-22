@@ -3,6 +3,13 @@ import pytest
 from rest_framework.test import APIClient
 import datetime
 from tests.factories import UserFactory, PageFactory, PostFactory, TagFactory
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+
+@pytest.fixture
+def image():
+    image = SimpleUploadedFile("file.jpg", b"file_content", content_type="image/jpg")
+    return image
 
 
 @pytest.fixture
@@ -82,11 +89,13 @@ def test_tag_3():
 
 @pytest.mark.django_db
 @pytest.fixture
-def test_page_1(test_user_1):
-    return PageFactory(
+def test_page_1(test_user_1, test_user):
+    page = PageFactory(
         is_private=False,
         owner=test_user_1
     )
+    page.followers.add(test_user)
+    return page
 
 
 @pytest.mark.django_db

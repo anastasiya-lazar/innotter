@@ -1,11 +1,24 @@
 from rest_framework import serializers
-from django.contrib.auth.hashers import make_password
-import django.contrib.auth.password_validation as validators
 from coreapp.models import User
 from coreapp.services.exceptions import InvalidCredentialsException, UserNotFoundException
 from coreapp.services.auth_service import AuthService
 from coreapp.services.user_service import UserService
-from rest_framework import exceptions
+from coreapp.services.aws_s3_service import S3Service
+
+
+class UserPresignedURLMixin(serializers.ModelSerializer):
+    """
+        A Mixin for instances of User model for inheriting to get presigned url of object's image
+    """
+    image_presigned_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("image_presigned_url",)
+
+    def get_image_presigned_url(self, obj):
+        object_name = str(obj.image_s3_path)
+        return S3Service().create_presigned_url(object_name=object_name)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -74,59 +87,73 @@ class UserChangeRoleModelSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserListModelSerializer(serializers.ModelSerializer):
+class UserListModelSerializer(UserPresignedURLMixin):
     """
     A Serializer for User model (list action)
     """
-
-    class Meta:
-        model = User
-        fields = ("id", "first_name", "last_name", "username")
+    class Meta(UserPresignedURLMixin.Meta):
+        fields = ("id", "first_name", "last_name", "username") + UserPresignedURLMixin.Meta.fields
 
 
 class UserModelSerializer(serializers.ModelSerializer):
     """
     A Default Serializer for User model with implementations of "validate()" - for password validation and "create()" methods
     """
+    image = serializers.FileField(max_length=256, required=False)
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "title", "password")
+        fields = ("id", "username", "email", "first_name", "last_name", "title", "password", "image")
         extra_kwargs = {
             "password": {"write_only": True, },
             "email": {"write_only": True, }
         }
 
-    def validate(self, data):
-        user = User(**data)
-        password = data.get("password")
-        if password:
-            try:
-                validators.validate_password(password=password, user=user)
-            except exceptions.ValidationError:
-                raise serializers.ValidationError
-        return super(UserModelSerializer, self).validate(data)
+    def validate_password(self, value):
+        value = UserService().password_validation(value=value, instance=self.instance)
+        return value
 
-    def create(self, validated_data):
-        validated_data["password"] = make_password(validated_data["password"], )
-        return super().create(validated_data)
+
+class UserUpdateModelSerializer(serializers.ModelSerializer):
+    """
+    A Default Serializer for User model with implementations of "validate()" - for password validation and "create()" methods
+    """
+    image = serializers.FileField(max_length=256, required=False)
+
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name", "title", "password", "image")
+        extra_kwargs = {
+            "password": {"write_only": True, "required": False},
+            "email": {"write_only": True, "required": False},
+            "username": {"required": False},
+            "first_name": {"required": False},
+            "last_name": {"required": False},
+        }
+
+    def validate_password(self, value):
+        value = UserService().password_validation(value=value, instance=self.instance)
+        return value
 
     def update(self, instance, validated_data):
+        image = UserService().get_image(validated_data)
         user = super().update(instance, validated_data)
         if "password" in validated_data:
             user.set_password(validated_data["password"])
             user.save()
+        if image:
+            UserService().upload_user_image_to_s3(image, user)
         return user
 
 
-class UserRetrieveModelSerializer(serializers.ModelSerializer):
+class UserRetrieveModelSerializer(UserPresignedURLMixin):
     """
     A Serializer for User model (retrieve action)
     """
 
-    class Meta:
-        model = User
-        fields = ("id", "username", "first_name", "last_name", "title", "date_joined", "is_blocked")
+    class Meta(UserPresignedURLMixin.Meta):
+        fields = ("id", "username", "first_name", "last_name", "title", "image_s3_path", "date_joined",
+                  "is_blocked",) + UserPresignedURLMixin.Meta.fields
 
 
 class UserLikedPostsSerializer(serializers.ModelSerializer):

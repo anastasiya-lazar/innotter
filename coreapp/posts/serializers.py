@@ -19,7 +19,7 @@ class PostModelSerializer(serializers.ModelSerializer):
 
 class PostCreateModelSerializer(serializers.ModelSerializer):
     """
-    A Default Serializer for Post model
+    A Serializer for Post model(create action)
     """
 
     class Meta:
@@ -33,6 +33,11 @@ class PostCreateModelSerializer(serializers.ModelSerializer):
             return validated_data
         else:
             raise InvalidPageException
+
+    def create(self, validated_data):
+        post = super().create(validated_data)
+        PostService().send_new_post_notification_email(post)
+        return post
 
 
 class PostRetrieveModelSerializer(serializers.ModelSerializer):

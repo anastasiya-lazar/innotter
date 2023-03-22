@@ -3,6 +3,22 @@ from coreapp.models import Page
 from coreapp.tags.serializers import TagModelSerializer
 from coreapp.users.serializers import UserModelSerializer, UserListModelSerializer
 from coreapp.services.page_service import PageService
+from coreapp.services.aws_s3_service import S3Service
+
+
+class PagePresignedURLMixin(serializers.ModelSerializer):
+    """
+        A Mixin for Page model for inheriting to get presigned url of object's image
+    """
+    image_presigned_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Page
+        fields = ("image_presigned_url",)
+
+    def get_image_presigned_url(self, obj):
+        object_name = str(obj.image_s3_path)
+        return S3Service().create_presigned_url(object_name=object_name)
 
 
 class PageForPostModelSerializer(serializers.ModelSerializer):
@@ -29,30 +45,35 @@ class PageModelSerializer(serializers.ModelSerializer):
     """
     A Default Serializer for Page model with implementation of "create()" method
     """
+    page_image = serializers.FileField(max_length=256, required=False)
 
     class Meta:
         model = Page
-        fields = ("id", "name", "description", "image", "is_private", "owner", "tags")
+        fields = ("id", "name", "description", "page_image", "is_private", "owner", "tags")
         read_only_fields = ("id", "owner")
 
     def create(self, validated_data):
         validated_data["owner"] = self.context["request"].user
-        return super().create(validated_data)
+        page_image = PageService().get_page_image(validated_data)
+        page = super().create(validated_data)
+        if page_image:
+            PageService().upload_page_image_to_s3(page_image, page)
+        return page
 
 
-class PageListModelSerializer(serializers.ModelSerializer):
+class PageListModelSerializer(PagePresignedURLMixin):
     """
     A Serializer for Page model (list action)
     """
     tags = TagModelSerializer(many=True)
     owner = UserModelSerializer()
 
-    class Meta:
-        model = Page
-        fields = ("id", "name", "description", "image", "owner", "is_private", "tags")
+    class Meta(PagePresignedURLMixin.Meta):
+        fields = ("id", "name", "description", "image", "owner", "is_private",
+                  "tags") + PagePresignedURLMixin.Meta.fields
 
 
-class PageRetrieveModelSerializer(serializers.ModelSerializer):
+class PageRetrieveModelSerializer(PagePresignedURLMixin):
     """
     A Serializer for Page model (retrieve action)
     """
@@ -60,9 +81,10 @@ class PageRetrieveModelSerializer(serializers.ModelSerializer):
     owner = UserModelSerializer()
     followers = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(PagePresignedURLMixin.Meta):
         model = Page
-        fields = ("name", "description", "image", "owner", "is_private", "tags", "followers")
+        fields = ("name", "description", "image", "owner", "is_private", "tags",
+                  "followers") + PagePresignedURLMixin.Meta.fields
 
     def get_followers(self, obj):
         return obj.followers.count()
@@ -72,10 +94,19 @@ class PageUpdateModelSerializer(serializers.ModelSerializer):
     """
     A Serializer for Page model (update action)
     """
+    page_image = serializers.FileField(max_length=256, required=False)
+    name = serializers.CharField(required=False)
 
     class Meta:
         model = Page
-        fields = ("name", "description", "image", "is_private", "tags")
+        fields = ("name", "description", "page_image", "is_private", "tags")
+
+    def update(self, instance, validated_data):
+        page_image = PageService().get_page_image(validated_data)
+        page = super().update(instance, validated_data)
+        if page_image:
+            PageService().upload_page_image_to_s3(page_image, page)
+        return page
 
 
 class PageOwnerModelSerializer(serializers.ModelSerializer):

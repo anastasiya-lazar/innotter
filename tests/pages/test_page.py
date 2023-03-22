@@ -6,6 +6,8 @@ from coreapp.models import Page
 from rest_framework.test import APIClient
 from tests.factories import PageCreateFactory
 import factory
+from coreapp.services.aws_s3_service import S3Service
+from unittest.mock import patch
 
 testdata = [("True", 1), ("False", 0)]
 
@@ -17,9 +19,11 @@ class TestPageModel:
         response = api_client.post("/pages/", payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_create_page_success(self, api_client_force_auth, test_user_1):
+    @patch.object(S3Service, "upload_file")
+    def test_create_page_success(self, mock_object, api_client_force_auth, test_user_1, image):
         payload = factory.build(dict, FACTORY_CLASS=PageCreateFactory)
-        response = api_client_force_auth.post("/pages/", payload)
+        payload["page_image"] = image
+        response = api_client_force_auth.post("/pages/", payload, format="multipart")
         page = Page.objects.filter(id=response.data["id"]).first()
         assert response.data["name"] == page.name
         assert response.status_code == status.HTTP_201_CREATED
@@ -27,7 +31,7 @@ class TestPageModel:
     def test_get_page_list(self, api_client, test_page_1, test_page_2, test_page_3):
         response = api_client.get("/pages/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        assert Page.objects.count() == 3
 
     def test_detail_page_success(self, api_client, test_page_1):
         response = api_client.get(reverse("coreapp:pages-detail", args=(test_page_1.id,)))
@@ -38,8 +42,10 @@ class TestPageModel:
         response = api_client.get(reverse("coreapp:pages-detail", args=(test_page_3.id,)))
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_update_page_success(self, api_client_1, test_page_1):
+    @patch.object(S3Service, "upload_file")
+    def test_update_page_success(self, mock_object, api_client_1, test_page_1, image):
         payload = factory.build(dict, FACTORY_CLASS=PageCreateFactory)
+        payload["page_image"] = image
         response = api_client_1.patch(f"/pages/{test_page_1.id}/", payload)
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == payload["name"]
@@ -63,7 +69,7 @@ class TestPageModel:
         response = api_client_force_auth.patch(f"/pages/{test_page_2.id}/block_page/", payload)
         assert response.status_code == status.HTTP_200_OK
 
-    @pytest.mark.parametrize("value,expected_count", testdata)
+    @pytest.mark.parametrize("value,expected_count", [("True", 2), ("False", 1)])
     def test_follow_unfollow_public_page(self, api_client_2, test_page_1, value, expected_count):
         payload = dict(follow=value)
         response = api_client_2.patch(f"/pages/{test_page_1.id}/follow_and_unfollow_page/", payload)

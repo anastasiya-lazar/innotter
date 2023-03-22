@@ -4,6 +4,7 @@ from coreapp.models import User, Page, Post, Tag
 
 # Register your models here.
 
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
@@ -19,7 +20,7 @@ class CustomUserAdmin(UserAdmin):
                 )
             }
         )
-    
+
     )
 
     fieldsets = (
@@ -35,9 +36,10 @@ class CustomUserAdmin(UserAdmin):
                 )
             }
         )
-    
+
     )
-    
+
+
 admin.site.register(Page)
 admin.site.register(Post)
 admin.site.register(Tag)

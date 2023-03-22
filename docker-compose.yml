@@ -25,7 +25,7 @@ services:
       - 8000:8000
     env_file:
       - ./.env
-    command: ["bash", "/app/entrypoint.sh"]
+    command: [ "bash", "/app/entrypoint.sh" ]
     depends_on:
       db:
         condition: service_healthy
