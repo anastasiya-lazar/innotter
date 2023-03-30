@@ -1,21 +1,19 @@
 version: "3.9"
 
 services:
-  db:
+  test-db:
     image: postgres:15.1-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
     ports:
       - 5433:${POSTGRES_PORT}
     env_file:
-      - ./.env
+      - ./.env.test
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "${POSTGRES_NAME}", "-U", "${POSTGRES_USER}" ]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
-  web:
+  test-web:
     build:
       dockerfile: Dockerfile
       context: .
@@ -24,11 +22,8 @@ services:
     ports:
       - 8000:8000
     env_file:
-      - ./.env
-    command: [ "bash", "/app/entrypoint.sh" ]
+      - ./.env.test
+    command: "pytest --cov-config=/app/tests/.coveragerc --cov-report xml --cov-report term-missing --cov=./ /app/tests/"
     depends_on:
-      db:
+      test-db:
         condition: service_healthy
-
-volumes:
-  postgres_data:

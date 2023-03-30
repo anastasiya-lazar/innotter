@@ -3,12 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from coreapp.models import Page
 from coreapp.pages.serializers import (
-    PageFollowSerializer, PageUpdateModelSerializer, PageListModelSerializer,
-    PageListFollowRequestsSerializer, PageAcceptFollowRequestsSerializer,
+    PageFollowSerializer, PageUpdateModelSerializer,
+    PageListModelSerializer, PageListFollowRequestsSerializer, PageAcceptFollowRequestsSerializer,
     PageRetrieveModelSerializer, PageBlockModelSerializer, PageModelSerializer
 )
 from coreapp.services.permissions import PageModelPermission
 from rest_framework import status
+from rest_framework import parsers
 
 
 class PageViewSet(
@@ -25,6 +26,7 @@ class PageViewSet(
     `follow_and_unfollow_page()`, `get_list_follow_requests()` actions.
     """
     queryset = Page.objects.all()
+    parser_classes = (parsers.MultiPartParser,)
 
     def get_queryset(self):
         if self.action == "list":

@@ -8,6 +8,8 @@ from coreapp.posts.serializers import (
 from coreapp.services.permissions import PostModelPermission
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import permissions
+from django.db.models import Q
 
 
 class PostViewSet(
@@ -34,6 +36,7 @@ class PostViewSet(
 
     serializer_classes = {
         "partial_update": PostUpdateModelSerializer,
+        "news_feed": PostRetrieveModelSerializer,
         "retrieve": PostRetrieveModelSerializer,
         "create": PostCreateModelSerializer,
         "like_and_unlike_post": PostLikeModelSerializer,
@@ -49,4 +52,13 @@ class PostViewSet(
         serializer = self.get_serializer(post, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    def news_feed(self, request):
+        queryset = Post.objects.filter(
+            Q(page__unblock_date=None),
+            Q(page__followers=request.user) | Q(page__owner=request.user)).order_by(
+            "created_at")
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

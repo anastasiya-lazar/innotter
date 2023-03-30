@@ -4,13 +4,16 @@ from rest_framework.response import Response
 from django.contrib.auth import logout
 from coreapp.models import User
 from coreapp.users.serializers import (
-    UserLikedPostsSerializer, UserChangeRoleModelSerializer, RefreshSerializer,
-    TokenSerializer, UserBlockModelSerializer, LoginSerializer,
+    UserUpdateModelSerializer, UserLikedPostsSerializer, UserChangeRoleModelSerializer,
+    RefreshSerializer, TokenSerializer, UserBlockModelSerializer, LoginSerializer,
     UserListModelSerializer, UserRetrieveModelSerializer, UserModelSerializer
 )
 from coreapp.services.auth_service import AuthService
 from coreapp.services.permissions import UserModelPermission
 from coreapp.services.user_service import UserService
+from rest_framework import parsers
+from coreapp.services.aws_s3_service import S3Service
+from rest_framework import status
 
 
 class AuthenticationViewSet(viewsets.GenericViewSet):
@@ -60,6 +63,7 @@ class UserViewSet(
     `partial_update()`, `destroy()`, `list()`, `list_of_liked_posts()`, `block_user()`,  `change_user_role()` actions.
     """
     queryset = User.objects.all()
+    parser_classes = (parsers.MultiPartParser,)
 
     def get_queryset(self):
         if self.action == "list":
@@ -73,12 +77,27 @@ class UserViewSet(
         "block_user": UserBlockModelSerializer,
         "change_user_role": UserChangeRoleModelSerializer,
         "list_of_liked_posts": UserLikedPostsSerializer,
+        "partial_update": UserUpdateModelSerializer,
         "default": UserModelSerializer,
     }
+
     permission_classes = [UserModelPermission]
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.serializer_classes["default"])
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        UserService().create_user(validated_data, serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None, **kwargs):
+        user = self.get_object()
+        S3Service().delete_object(object_name=f"user_{user.id}_image")
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["patch"], permission_classes=[permissions.IsAdminUser])
     def block_user(self, request, pk=None):

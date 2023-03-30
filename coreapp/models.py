@@ -16,7 +16,7 @@ class User(AbstractUser):
     first_name = models.CharField("first name", max_length=150, blank=False)
     last_name = models.CharField("last name", max_length=150, blank=False)
     email = models.EmailField(unique=True, blank=False)
-    image_s3_path = models.URLField(null=True, blank=True)
+    image_s3_path = models.TextField(null=True, blank=True)
     role = models.CharField(max_length=9, choices=Roles.choices, default=Roles.USER)
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
@@ -45,10 +45,11 @@ class Page(models.Model):
     tags = models.ManyToManyField("Tag", related_name="pages", blank=True)
     owner = models.ForeignKey("User", on_delete=models.CASCADE, related_name="pages")
     followers = models.ManyToManyField("User", related_name="follows", blank=True)
-    image = models.URLField(null=True, blank=True)
+    image = models.TextField(null=True, blank=True)
     is_private = models.BooleanField(default=False)
     follow_requests = models.ManyToManyField("User", related_name="requests", blank=True)
     unblock_date = models.DateTimeField(null=True, blank=True)
+    image_s3_path = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.owner}'s {self.name}"
